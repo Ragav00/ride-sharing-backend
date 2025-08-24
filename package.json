@@ -7,6 +7,7 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "test": "jest",
+    "test-connection": "node -e \"const mongoose = require('mongoose'); mongoose.connect(process.env.TEST_MONGODB_URI).then(() => { console.log('✅ Connection successful!'); process.exit(0); }).catch(err => { console.error('❌ Connection failed:', err.message); process.exit(1); });\"",
     "setup-users": "node setup-users.js",
     "seed": "node src/scripts/seedUsers.js",
     "build": "echo 'Build completed - ready for Railway'",

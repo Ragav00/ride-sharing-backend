@@ -10,7 +10,7 @@ dotenv.config();
 
 // Import configurations
 const { connectDB } = require('./config/database');
-const { connectRedis } = require('./config/redis');
+const { connectRedis } = require('./config/redis-railway');
 const { specs, swaggerUi, swaggerOptions } = require('./config/swagger');
 
 // Import routes

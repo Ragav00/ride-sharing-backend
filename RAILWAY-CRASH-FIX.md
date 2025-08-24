@@ -45,7 +45,7 @@ Create a Railway-specific app.js that handles initialization better:
 **Required Variables in Railway:**
 ```
 NODE_ENV=production
-MONGODB_URI=mongodb+srv://ride-admin:Ragav%4095@rider.dvycreo.mongodb.net/ride-sharing?retryWrites=true&w=majority&appName=rider
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority&appName=YOUR_APP_NAME
 JWT_SECRET=ride-sharing-super-secret-jwt-key-2024-railway-production
 JWT_EXPIRES_IN=24h
 RATE_LIMIT_WINDOW=900000

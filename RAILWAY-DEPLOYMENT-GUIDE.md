@@ -47,7 +47,13 @@ In your Railway project, go to **Variables** tab and add:
 
 ```env
 NODE_ENV=production
-MONGODB_URI=mongodb+srv://ride-admin:Ragav%4095@rider.dvycreo.mongodb.net/ride-sharing?retryWrites=true&w=majority&appName=rider
+```bash
+# Set your MongoDB Atlas connection string
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority&appName=YOUR_APP_NAME
+
+# Important: Replace placeholders with your actual values
+# URL-encode special characters in password (@ becomes %40, # becomes %23, etc.)
+```
 JWT_SECRET=ride-sharing-super-secret-jwt-key-2024-railway-production
 FRONTEND_URL=https://your-app.vercel.app
 ALLOWED_ORIGINS=https://your-app.vercel.app
@@ -143,7 +149,7 @@ NEXT_PUBLIC_WS_URL=wss://yourproject.railway.app
    - Verify all dependencies are listed
 
 2. **MongoDB Connection**:
-   - Verify password URL encoding: `Ragav%4095`
+   - Verify password URL encoding for special characters
    - Check MongoDB Atlas network access
    - Ensure user has correct permissions
 

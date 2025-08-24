@@ -1,6 +1,8 @@
 # 🚂 Railway Deployment - Environment Variables Setup
 
-Copy and paste these **exact** environment variables in your Railway project dashboard:
+Copy and paste these 2. **MongoDB Connection Failed**
+   - Ensure password is URL-encoded (special characters like @, #, etc.)
+   - Check MongoDB Atlas network access allows 0.0.0.0/0xact** environment variables in your Railway project dashboard:
 
 ## 📋 **Required Environment Variables**
 
@@ -13,9 +15,9 @@ JWT_EXPIRES_IN=24h
 
 ### **MongoDB Atlas Connection** ⚠️ **IMPORTANT**
 ```
-MONGODB_URI=mongodb+srv://ride-admin:Ragav%4095@rider.dvycreo.mongodb.net/ride-sharing?retryWrites=true&w=majority&appName=rider
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority&appName=YOUR_APP_NAME
 ```
-**Note:** Password is URL-encoded (`@95` becomes `%4095`)
+**Note:** Replace with your actual MongoDB Atlas connection string with URL-encoded password
 
 ### **Security & Rate Limiting**
 ```

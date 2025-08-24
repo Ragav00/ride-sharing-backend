@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RideShare - Driver Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🚕 RideShare Driver</h1>
+                <div class="user-info">
+                    <span id="user-name">Loading...</span>
+                    <button class="btn btn-secondary" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Login/Register Modal -->
+        <div id="auth-modal" class="modal">
+            <div class="modal-content">
+                <h2 id="modal-title">Driver Login</h2>
+                
+                <!-- Login Form -->
+                <div id="login-form">
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label for="login-email">Email:</label>
+                            <input type="email" id="login-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password:</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="login-btn">Login</button>
+                    </form>
+                    <p class="toggle-auth">
+                        Don't have an account? 
+                        <a href="#" onclick="toggleAuthMode()">Register here</a>
+                    </p>
+                </div>
+
+                <!-- Register Form -->
+                <div id="register-form" style="display: none;">
+                    <form onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label for="reg-name">Full Name:</label>
+                            <input type="text" id="reg-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email">Email:</label>
+                            <input type="email" id="reg-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password">Password:</label>
+                            <input type="password" id="reg-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-phone">Phone:</label>
+                            <input type="tel" id="reg-phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-license">License Number:</label>
+                            <input type="text" id="reg-license" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-vehicle-number">Vehicle Number:</label>
+                            <input type="text" id="reg-vehicle-number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-vehicle-type">Vehicle Type:</label>
+                            <select id="reg-vehicle-type" required>
+                                <option value="">Select vehicle type</option>
+                                <option value="bike">🏍️ Bike</option>
+                                <option value="auto">🛺 Auto</option>
+                                <option value="car">🚗 Car</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="register-btn">Register</button>
+                    </form>
+                    <p class="toggle-auth">
+                        Already have an account? 
+                        <a href="#" onclick="toggleAuthMode()">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main id="main-content" style="display: none;">
+            <!-- Driver Stats -->
+            <section class="driver-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-orders">0</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="completed-orders">0</div>
+                    <div class="stat-label">Completed Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="earnings">₹0</div>
+                    <div class="stat-label">Total Earnings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="rating">4.5</div>
+                    <div class="stat-label">Rating</div>
+                </div>
+            </section>
+
+            <!-- Availability Toggle -->
+            <section class="availability-toggle">
+                <h3>Driver Availability</h3>
+                <div class="availability-status">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="availability-toggle" onchange="toggleAvailability()">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="availability-status">Offline</span>
+                </div>
+                <p id="availability-description">Turn on to start receiving ride requests</p>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="refreshOrders()">
+                        🔄 Refresh Orders
+                    </button>
+                    <button class="btn btn-secondary" onclick="showEarningsModal()">
+                        💰 View Earnings
+                    </button>
+                </div>
+            </section>
+
+            <!-- Orders Section -->
+            <section class="orders-section">
+                <h2>My Orders</h2>
+                <div id="orders-container">
+                    <div class="loading">Loading your orders...</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Order Action Modal -->
+        <div id="order-action-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="action-modal-title">Order Action</h2>
+                    <button class="close-btn" onclick="closeOrderActionModal()">&times;</button>
+                </div>
+                <div id="order-action-content">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        let orders = [];
+        let autoRefreshInterval = null;
+        let isAvailable = false;
+
+        // Initialize the application
+        function initApp() {
+            console.log('🚀 Initializing Driver Dashboard');
+            
+            if (authManager.isAuthenticated()) {
+                showDashboard();
+                loadUserInfo();
+                loadOrders();
+                loadDriverStats();
+                startAutoRefresh();
+            } else {
+                showAuthModal();
+            }
+        }
+
+        // Show authentication modal
+        function showAuthModal() {
+            document.getElementById('auth-modal').style.display = 'block';
+            document.getElementById('main-content').style.display = 'none';
+        }
+
+        // Show main dashboard
+        function showDashboard() {
+            document.getElementById('auth-modal').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+        }
+
+        // Load user information
+        function loadUserInfo() {
+            const user = authManager.user;
+            if (user) {
+                document.getElementById('user-name').textContent = user.name;
+                // Set initial availability based on user status
+                isAvailable = user.isAvailable || false;
+                document.getElementById('availability-toggle').checked = isAvailable;
+                updateAvailabilityUI();
+            }
+        }
+
+        // Toggle between login and register forms
+        function toggleAuthMode() {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const modalTitle = document.getElementById('modal-title');
+
+            if (loginForm.style.display === 'none') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                modalTitle.textContent = 'Driver Login';
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                modalTitle.textContent = 'Driver Registration';
+            }
+        }
+
+        // Handle login
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            uiUtils.showLoading('login-btn');
+
+            try {
+                const result = await authManager.login(email, password);
+                
+                if (result.success) {
+                    if (result.user.userType !== 'driver') {
+                        uiUtils.showMessage('Please use the customer portal for customer accounts', 'error');
+                        authManager.clearAuth();
+                        return;
+                    }
+                    
+                    uiUtils.showMessage('Login successful!', 'success');
+                    showDashboard();
+                    loadUserInfo();
+                    loadOrders();
+                    loadDriverStats();
+                    startAutoRefresh();
+                } else {
+                    uiUtils.showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                uiUtils.showMessage('Login failed', 'error');
+            } finally {
+                uiUtils.hideLoading('login-btn', 'Login');
+            }
+        }
+
+        // Handle registration
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const userData = {
+                name: document.getElementById('reg-name').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-password').value,
+                phone: document.getElementById('reg-phone').value,
+                userType: 'driver',
+                licenseNumber: document.getElementById('reg-license').value,
+                vehicleNumber: document.getElementById('reg-vehicle-number').value,
+                vehicleType: document.getElementById('reg-vehicle-type').value
+            };
+
+            uiUtils.showLoading('register-btn');
+
+            try {
+                const result = await authManager.register(userData);
+                
+                if (result.success) {
+                    uiUtils.showMessage('Registration successful! Please login.', 'success');
+                    toggleAuthMode(); // Switch to login form
+                } else {
+                    uiUtils.showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                uiUtils.showMessage('Registration failed', 'error');
+            } finally {
+                uiUtils.hideLoading('register-btn', 'Register');
+            }
+        }
+
+        // Load driver statistics
+        async function loadDriverStats() {
+            console.log('📊 Loading driver statistics');
+            // This would typically come from an API endpoint
+            // For now, we'll calculate from orders
+            const completedOrders = orders.filter(order => order.status === 'completed');
+            const totalEarnings = completedOrders.reduce((sum, order) => sum + (order.fare || 0), 0);
+
+            document.getElementById('total-orders').textContent = orders.length;
+            document.getElementById('completed-orders').textContent = completedOrders.length;
+            document.getElementById('earnings').textContent = `₹${totalEarnings}`;
+            // Rating would come from API
+        }
+
+        // Load orders from API
+        async function loadOrders() {
+            console.log('📋 Loading driver orders');
+            
+            const result = await authManager.apiCall('/drivers/orders');
+            
+            if (result.success) {
+                orders = result.data.orders || [];
+                displayOrders();
+                loadDriverStats(); // Update stats after loading orders
+                console.log(`✅ Loaded ${orders.length} orders`);
+            } else if (result.error === 'UNAUTHORIZED') {
+                console.warn('⚠️ Unauthorized - showing login modal');
+                showAuthModal();
+            } else {
+                console.error('❌ Failed to load orders:', result.error);
+                document.getElementById('orders-container').innerHTML = 
+                    '<div class="error">Failed to load orders</div>';
+            }
+        }
+
+        // Display orders
+        function displayOrders() {
+            const container = document.getElementById('orders-container');
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<div class="no-orders">No orders assigned yet.</div>';
+                return;
+            }
+
+            const ordersHtml = orders.map(order => `
+                <div class="order-card ${order.status}">
+                    <div class="order-header">
+                        <div class="order-id">Order #${order.orderId}</div>
+                        <div class="order-status status-${order.status}">${order.status.toUpperCase()}</div>
+                    </div>
+                    <div class="order-details">
+                        <div class="location">
+                            <div class="pickup">📍 ${order.pickupLocation}</div>
+                            <div class="destination">🏁 ${order.destination}</div>
+                        </div>
+                        <div class="order-info">
+                            <div class="vehicle-type">🚗 ${order.vehicleType}</div>
+                            <div class="created-at">🕒 ${uiUtils.formatDate(order.createdAt)}</div>
+                            ${order.estimatedPrice ? `<div class="price">💰 ₹${order.estimatedPrice}</div>` : ''}
+                            ${order.distance ? `<div class="distance">📏 ${uiUtils.formatDistance(order.distance)}</div>` : ''}
+                        </div>
+                        ${order.customer ? `
+                            <div class="driver-info">
+                                <div class="driver-name">👤 ${order.customer.name}</div>
+                                <div class="driver-phone">📞 ${order.customer.phone}</div>
+                            </div>
+                        ` : ''}
+                        ${order.notes ? `<div class="notes">📝 ${order.notes}</div>` : ''}
+                    </div>
+                    <div class="order-actions">
+                        ${getOrderActions(order)}
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = ordersHtml;
+        }
+
+        // Get order actions based on status
+        function getOrderActions(order) {
+            switch (order.status) {
+                case 'assigned':
+                    return `
+                        <button class="btn btn-primary btn-sm" onclick="acceptOrder('${order._id}')">
+                            ✅ Accept Order
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="rejectOrder('${order._id}')">
+                            ❌ Reject Order
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="showOrderDetails('${order._id}')">
+                            View Details
+                        </button>
+                    `;
+                case 'accepted':
+                    return `
+                        <button class="btn btn-primary btn-sm" onclick="startRide('${order._id}')">
+                            🚀 Start Ride
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="contactCustomer('${order._id}')">
+                            📞 Contact Customer
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="showOrderDetails('${order._id}')">
+                            View Details
+                        </button>
+                    `;
+                case 'in-progress':
+                    return `
+                        <button class="btn btn-primary btn-sm" onclick="completeRide('${order._id}')">
+                            🏁 Complete Ride
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="contactCustomer('${order._id}')">
+                            📞 Contact Customer
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="showOrderDetails('${order._id}')">
+                            View Details
+                        </button>
+                    `;
+                default:
+                    return `
+                        <button class="btn btn-secondary btn-sm" onclick="showOrderDetails('${order._id}')">
+                            View Details
+                        </button>
+                    `;
+            }
+        }
+
+        // Toggle driver availability
+        async function toggleAvailability() {
+            const toggle = document.getElementById('availability-toggle');
+            isAvailable = toggle.checked;
+
+            const result = await authManager.apiCall('/drivers/availability', {
+                method: 'PUT',
+                body: JSON.stringify({ isAvailable })
+            });
+
+            if (result.success) {
+                updateAvailabilityUI();
+                uiUtils.showMessage(`You are now ${isAvailable ? 'online' : 'offline'}`, 'success');
+            } else {
+                // Revert toggle if API call fails
+                toggle.checked = !isAvailable;
+                uiUtils.showMessage('Failed to update availability', 'error');
+            }
+        }
+
+        // Update availability UI
+        function updateAvailabilityUI() {
+            const statusText = document.getElementById('availability-status');
+            const descriptionText = document.getElementById('availability-description');
+
+            if (isAvailable) {
+                statusText.textContent = 'Online';
+                statusText.style.color = '#28a745';
+                descriptionText.textContent = 'You are receiving ride requests';
+            } else {
+                statusText.textContent = 'Offline';
+                statusText.style.color = '#dc3545';
+                descriptionText.textContent = 'Turn on to start receiving ride requests';
+            }
+        }
+
+        // Accept order
+        async function acceptOrder(orderId) {
+            const result = await authManager.apiCall(`/drivers/orders/${orderId}/accept`, {
+                method: 'PUT'
+            });
+
+            if (result.success) {
+                uiUtils.showMessage('Order accepted successfully!', 'success');
+                loadOrders();
+            } else {
+                uiUtils.showMessage('Failed to accept order', 'error');
+            }
+        }
+
+        // Reject order
+        async function rejectOrder(orderId) {
+            if (!confirm('Are you sure you want to reject this order?')) {
+                return;
+            }
+
+            const result = await authManager.apiCall(`/drivers/orders/${orderId}/reject`, {
+                method: 'PUT'
+            });
+
+            if (result.success) {
+                uiUtils.showMessage('Order rejected', 'success');
+                loadOrders();
+            } else {
+                uiUtils.showMessage('Failed to reject order', 'error');
+            }
+        }
+
+        // Start ride
+        async function startRide(orderId) {
+            const result = await authManager.apiCall(`/drivers/orders/${orderId}/start`, {
+                method: 'PUT'
+            });
+
+            if (result.success) {
+                uiUtils.showMessage('Ride started!', 'success');
+                loadOrders();
+            } else {
+                uiUtils.showMessage('Failed to start ride', 'error');
+            }
+        }
+
+        // Complete ride
+        async function completeRide(orderId) {
+            const result = await authManager.apiCall(`/drivers/orders/${orderId}/complete`, {
+                method: 'PUT'
+            });
+
+            if (result.success) {
+                uiUtils.showMessage('Ride completed!', 'success');
+                loadOrders();
+                loadDriverStats(); // Update stats
+            } else {
+                uiUtils.showMessage('Failed to complete ride', 'error');
+            }
+        }
+
+        // Contact customer
+        function contactCustomer(orderId) {
+            const order = orders.find(o => o._id === orderId);
+            if (order && order.customer) {
+                const phone = order.customer.phone;
+                if (confirm(`Call customer at ${phone}?`)) {
+                    window.open(`tel:${phone}`);
+                }
+            } else {
+                uiUtils.showMessage('Customer contact information not available', 'error');
+            }
+        }
+
+        // Show order details
+        function showOrderDetails(orderId) {
+            const order = orders.find(o => o._id === orderId);
+            if (order) {
+                let details = `Order Details:\n\n`;
+                details += `ID: ${order.orderId}\n`;
+                details += `Status: ${order.status}\n`;
+                details += `From: ${order.pickupLocation}\n`;
+                details += `To: ${order.destination}\n`;
+                details += `Vehicle: ${order.vehicleType}\n`;
+                details += `Created: ${new Date(order.createdAt).toLocaleString()}\n`;
+                
+                if (order.customer) {
+                    details += `Customer: ${order.customer.name}\n`;
+                    details += `Phone: ${order.customer.phone}\n`;
+                }
+                
+                if (order.estimatedPrice) {
+                    details += `Price: ₹${order.estimatedPrice}\n`;
+                }
+                
+                if (order.notes) {
+                    details += `Notes: ${order.notes}\n`;
+                }
+                
+                alert(details);
+            }
+        }
+
+        // Show earnings modal (placeholder)
+        function showEarningsModal() {
+            alert('Earnings details would be shown here. This feature can be expanded to show detailed earnings breakdown.');
+        }
+
+        // Close order action modal
+        function closeOrderActionModal() {
+            document.getElementById('order-action-modal').style.display = 'none';
+        }
+
+        // Refresh orders manually
+        function refreshOrders() {
+            console.log('🔄 Manual orders refresh');
+            loadOrders();
+        }
+
+        // Auto refresh orders every 30 seconds
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            autoRefreshInterval = setInterval(() => {
+                if (authManager.isAuthenticated()) {
+                    console.log('🔄 Auto-refreshing orders');
+                    loadOrders();
+                }
+            }, 30000); // 30 seconds
+        }
+
+        // Stop auto refresh
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        // Logout function
+        function logout() {
+            stopAutoRefresh();
+            authManager.logout();
+        }
+
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('📄 Page hidden - stopping auto refresh');
+                stopAutoRefresh();
+            } else {
+                console.log('📄 Page visible - starting auto refresh');
+                if (authManager.isAuthenticated()) {
+                    loadOrders();
+                    startAutoRefresh();
+                }
+            }
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const authModal = document.getElementById('auth-modal');
+            const actionModal = document.getElementById('order-action-modal');
+            
+            if (event.target === authModal) {
+                if (authManager.isAuthenticated()) {
+                    authModal.style.display = 'none';
+                }
+            }
+            
+            if (event.target === actionModal) {
+                closeOrderActionModal();
+            }
+        }
+
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

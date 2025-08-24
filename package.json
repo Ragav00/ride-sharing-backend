@@ -1,0 +1,54 @@
+{
+  "name": "ride-sharing-backend",
+  "version": "1.0.0",
+  "description": "Ride sharing backend with delivery partner assignment and order locking system",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest",
+    "setup-users": "node setup-users.js",
+    "seed": "node src/scripts/seedUsers.js",
+    "build": "echo 'Build completed - ready for Railway'",
+    "railway:health": "curl $RAILWAY_PUBLIC_DOMAIN/api/health",
+    "railway:logs": "railway logs"
+  },
+  "keywords": [
+    "ride-sharing",
+    "delivery",
+    "backend",
+    "nodejs",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.0.1",
+    "geolib": "^3.3.4",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.0",
+    "redis": "^4.6.10",
+    "socket.io": "^4.7.4",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^9.0.1",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.2.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: ride_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: ride_sharing
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - ride-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ride_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass "redis123"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ride-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ride_redis_ui
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: local:ride_redis:6379:0:redis123
+    networks:
+      - ride-network
+    depends_on:
+      - redis
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  ride-network:
+    driver: bridge

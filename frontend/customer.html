@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RideShare - Customer Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🚗 RideShare Customer</h1>
+                <div class="user-info">
+                    <span id="user-name">Loading...</span>
+                    <button class="btn btn-secondary" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Login/Register Modal -->
+        <div id="auth-modal" class="modal">
+            <div class="modal-content">
+                <h2 id="modal-title">Customer Login</h2>
+                
+                <!-- Login Form -->
+                <div id="login-form">
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label for="login-email">Email:</label>
+                            <input type="email" id="login-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password:</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="login-btn">Login</button>
+                    </form>
+                    <p class="toggle-auth">
+                        Don't have an account? 
+                        <a href="#" onclick="toggleAuthMode()">Register here</a>
+                    </p>
+                </div>
+
+                <!-- Register Form -->
+                <div id="register-form" style="display: none;">
+                    <form onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label for="reg-name">Full Name:</label>
+                            <input type="text" id="reg-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email">Email:</label>
+                            <input type="email" id="reg-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password">Password:</label>
+                            <input type="password" id="reg-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-phone">Phone:</label>
+                            <input type="tel" id="reg-phone" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="register-btn">Register</button>
+                    </form>
+                    <p class="toggle-auth">
+                        Already have an account? 
+                        <a href="#" onclick="toggleAuthMode()">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main id="main-content" style="display: none;">
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="showBookRideModal()">
+                        📍 Book New Ride
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshOrders()">
+                        🔄 Refresh Orders
+                    </button>
+                </div>
+            </section>
+
+            <!-- Current Orders -->
+            <section class="orders-section">
+                <h2>My Orders</h2>
+                <div id="orders-container">
+                    <div class="loading">Loading your orders...</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Book Ride Modal -->
+        <div id="book-ride-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Book a Ride</h2>
+                    <button class="close-btn" onclick="closeBookRideModal()">&times;</button>
+                </div>
+                <form onsubmit="handleBookRide(event)">
+                    <div class="form-group">
+                        <label for="pickup-location">Pickup Location:</label>
+                        <input type="text" id="pickup-location" required placeholder="Enter pickup address">
+                    </div>
+                    <div class="form-group">
+                        <label for="destination">Destination:</label>
+                        <input type="text" id="destination" required placeholder="Enter destination address">
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicle-type">Vehicle Type:</label>
+                        <select id="vehicle-type" required>
+                            <option value="">Select vehicle type</option>
+                            <option value="bike">🏍️ Bike</option>
+                            <option value="auto">🛺 Auto</option>
+                            <option value="car">🚗 Car</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Special Instructions (Optional):</label>
+                        <textarea id="notes" rows="3" placeholder="Any special instructions..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="book-ride-btn">Book Ride</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        let orders = [];
+        let autoRefreshInterval = null;
+
+        // Initialize the application
+        function initApp() {
+            console.log('🚀 Initializing Customer Dashboard');
+            
+            if (authManager.isAuthenticated()) {
+                showDashboard();
+                loadUserInfo();
+                loadOrders();
+                startAutoRefresh();
+            } else {
+                showAuthModal();
+            }
+        }
+
+        // Show authentication modal
+        function showAuthModal() {
+            document.getElementById('auth-modal').style.display = 'block';
+            document.getElementById('main-content').style.display = 'none';
+        }
+
+        // Show main dashboard
+        function showDashboard() {
+            document.getElementById('auth-modal').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+        }
+
+        // Load user information
+        function loadUserInfo() {
+            const user = authManager.user;
+            if (user) {
+                document.getElementById('user-name').textContent = user.name;
+            }
+        }
+
+        // Toggle between login and register forms
+        function toggleAuthMode() {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const modalTitle = document.getElementById('modal-title');
+
+            if (loginForm.style.display === 'none') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                modalTitle.textContent = 'Customer Login';
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                modalTitle.textContent = 'Customer Registration';
+            }
+        }
+
+        // Handle login
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            uiUtils.showLoading('login-btn');
+
+            try {
+                const result = await authManager.login(email, password);
+                
+                if (result.success) {
+                    if (result.user.userType !== 'customer') {
+                        uiUtils.showMessage('Please use the driver portal for driver accounts', 'error');
+                        authManager.clearAuth();
+                        return;
+                    }
+                    
+                    uiUtils.showMessage('Login successful!', 'success');
+                    showDashboard();
+                    loadUserInfo();
+                    loadOrders();
+                    startAutoRefresh();
+                } else {
+                    uiUtils.showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                uiUtils.showMessage('Login failed', 'error');
+            } finally {
+                uiUtils.hideLoading('login-btn', 'Login');
+            }
+        }
+
+        // Handle registration
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const userData = {
+                name: document.getElementById('reg-name').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-password').value,
+                phone: document.getElementById('reg-phone').value,
+                userType: 'customer'
+            };
+
+            uiUtils.showLoading('register-btn');
+
+            try {
+                const result = await authManager.register(userData);
+                
+                if (result.success) {
+                    uiUtils.showMessage('Registration successful! Please login.', 'success');
+                    toggleAuthMode(); // Switch to login form
+                } else {
+                    uiUtils.showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                uiUtils.showMessage('Registration failed', 'error');
+            } finally {
+                uiUtils.hideLoading('register-btn', 'Register');
+            }
+        }
+
+        // Load orders from API
+        async function loadOrders() {
+            console.log('📋 Loading customer orders');
+            
+            const result = await authManager.apiCall('/orders');
+            
+            if (result.success) {
+                orders = result.data.orders || [];
+                displayOrders();
+                console.log(`✅ Loaded ${orders.length} orders`);
+            } else if (result.error === 'UNAUTHORIZED') {
+                console.warn('⚠️ Unauthorized - showing login modal');
+                showAuthModal();
+            } else {
+                console.error('❌ Failed to load orders:', result.error);
+                document.getElementById('orders-container').innerHTML = 
+                    '<div class="error">Failed to load orders</div>';
+            }
+        }
+
+        // Display orders
+        function displayOrders() {
+            const container = document.getElementById('orders-container');
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<div class="no-orders">No orders found. Book your first ride!</div>';
+                return;
+            }
+
+            const ordersHtml = orders.map(order => `
+                <div class="order-card ${order.status}">
+                    <div class="order-header">
+                        <div class="order-id">Order #${order.orderId}</div>
+                        <div class="order-status status-${order.status}">${order.status.toUpperCase()}</div>
+                    </div>
+                    <div class="order-details">
+                        <div class="location">
+                            <div class="pickup">📍 ${order.pickupLocation}</div>
+                            <div class="destination">🏁 ${order.destination}</div>
+                        </div>
+                        <div class="order-info">
+                            <div class="vehicle-type">🚗 ${order.vehicleType}</div>
+                            <div class="created-at">🕒 ${uiUtils.formatDate(order.createdAt)}</div>
+                            ${order.estimatedPrice ? `<div class="price">💰 ₹${order.estimatedPrice}</div>` : ''}
+                        </div>
+                        ${order.assignedDriver ? `
+                            <div class="driver-info">
+                                <div class="driver-name">👨‍💼 ${order.assignedDriver.name}</div>
+                                <div class="driver-phone">📞 ${order.assignedDriver.phone}</div>
+                            </div>
+                        ` : ''}
+                        ${order.notes ? `<div class="notes">📝 ${order.notes}</div>` : ''}
+                    </div>
+                    <div class="order-actions">
+                        ${order.status === 'pending' ? `
+                            <button class="btn btn-danger btn-sm" onclick="cancelOrder('${order._id}')">
+                                Cancel Order
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-secondary btn-sm" onclick="showOrderDetails('${order._id}')">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = ordersHtml;
+        }
+
+        // Show book ride modal
+        function showBookRideModal() {
+            document.getElementById('book-ride-modal').style.display = 'block';
+        }
+
+        // Close book ride modal
+        function closeBookRideModal() {
+            document.getElementById('book-ride-modal').style.display = 'none';
+            // Reset form
+            document.querySelector('#book-ride-modal form').reset();
+        }
+
+        // Handle book ride
+        async function handleBookRide(event) {
+            event.preventDefault();
+            
+            const rideData = {
+                pickupLocation: document.getElementById('pickup-location').value,
+                destination: document.getElementById('destination').value,
+                vehicleType: document.getElementById('vehicle-type').value,
+                notes: document.getElementById('notes').value || undefined
+            };
+
+            uiUtils.showLoading('book-ride-btn');
+
+            try {
+                const result = await authManager.apiCall('/orders', {
+                    method: 'POST',
+                    body: JSON.stringify(rideData)
+                });
+                
+                if (result.success) {
+                    uiUtils.showMessage('Ride booked successfully!', 'success');
+                    closeBookRideModal();
+                    loadOrders(); // Refresh orders
+                } else {
+                    uiUtils.showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                uiUtils.showMessage('Failed to book ride', 'error');
+            } finally {
+                uiUtils.hideLoading('book-ride-btn', 'Book Ride');
+            }
+        }
+
+        // Cancel order
+        async function cancelOrder(orderId) {
+            if (!confirm('Are you sure you want to cancel this order?')) {
+                return;
+            }
+
+            const result = await authManager.apiCall(`/orders/${orderId}`, {
+                method: 'DELETE'
+            });
+            
+            if (result.success) {
+                uiUtils.showMessage('Order cancelled successfully', 'success');
+                loadOrders(); // Refresh orders
+            } else {
+                uiUtils.showMessage('Failed to cancel order', 'error');
+            }
+        }
+
+        // Show order details
+        function showOrderDetails(orderId) {
+            const order = orders.find(o => o._id === orderId);
+            if (order) {
+                alert(`Order Details:\n\nID: ${order.orderId}\nStatus: ${order.status}\nFrom: ${order.pickupLocation}\nTo: ${order.destination}\nVehicle: ${order.vehicleType}\nCreated: ${new Date(order.createdAt).toLocaleString()}`);
+            }
+        }
+
+        // Refresh orders manually
+        function refreshOrders() {
+            console.log('🔄 Manual orders refresh');
+            loadOrders();
+        }
+
+        // Auto refresh orders every 30 seconds
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            autoRefreshInterval = setInterval(() => {
+                if (authManager.isAuthenticated()) {
+                    console.log('🔄 Auto-refreshing orders');
+                    loadOrders();
+                }
+            }, 30000); // 30 seconds
+        }
+
+        // Stop auto refresh
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        // Logout function
+        function logout() {
+            stopAutoRefresh();
+            authManager.logout();
+        }
+
+        // Handle page visibility change to prevent unnecessary API calls when page is hidden
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('📄 Page hidden - stopping auto refresh');
+                stopAutoRefresh();
+            } else {
+                console.log('📄 Page visible - starting auto refresh');
+                if (authManager.isAuthenticated()) {
+                    loadOrders(); // Load immediately when page becomes visible
+                    startAutoRefresh();
+                }
+            }
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const authModal = document.getElementById('auth-modal');
+            const bookRideModal = document.getElementById('book-ride-modal');
+            
+            if (event.target === authModal) {
+                // Don't allow closing auth modal by clicking outside if not authenticated
+                if (authManager.isAuthenticated()) {
+                    authModal.style.display = 'none';
+                }
+            }
+            
+            if (event.target === bookRideModal) {
+                closeBookRideModal();
+            }
+        }
+
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

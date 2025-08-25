@@ -72,7 +72,7 @@ NODE_ENV=production
 PORT=$PORT
 
 # MongoDB Atlas Connection
-MONGODB_URI=mongodb+srv://ride-admin:(Ragav@95)@rider.dvycreo.mongodb.net/ride-sharing?retryWrites=true&w=majority&appName=rider
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority&appName=YOUR_APP
 USE_MOCK_DATABASE=false
 
 # Railway Redis (Automatically provided by Railway)
@@ -150,7 +150,7 @@ echo -e "${PURPLE}🔧 Environment Variables for Railway Dashboard:${NC}"
 echo -e "${BLUE}Add these in your Railway project settings:${NC}"
 echo ""
 echo -e "${GREEN}NODE_ENV=production${NC}"
-echo -e "${GREEN}MONGODB_URI=mongodb+srv://ride-admin:(Ragav@95)@rider.dvycreo.mongodb.net/ride-sharing?retryWrites=true&w=majority&appName=rider${NC}"
+echo -e "${GREEN}MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority&appName=YOUR_APP${NC}"
 echo -e "${GREEN}JWT_SECRET=ride-sharing-super-secret-jwt-key-2024-railway-production${NC}"
 echo -e "${GREEN}FRONTEND_URL=https://your-app.vercel.app${NC}"
 echo -e "${GREEN}ALLOWED_ORIGINS=https://your-app.vercel.app${NC}"
@@ -158,5 +158,5 @@ echo ""
 echo -e "${YELLOW}Note: REDIS_URL and PORT are automatically provided by Railway${NC}"
 
 echo -e "${PURPLE}📖 Your MongoDB connection is ready!${NC}"
-echo -e "${GREEN}Database: rider.dvycreo.mongodb.net${NC}"
+echo -e "${GREEN}Database: YOUR_CLUSTER.mongodb.net${NC}"
 echo -e "${GREEN}Collection: ride-sharing${NC}"

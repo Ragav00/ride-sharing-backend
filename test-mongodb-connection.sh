@@ -7,7 +7,7 @@ echo ""
 # Test the connection string locally before setting in Railway
 # Replace YOUR_CONNECTION_STRING with your actual MongoDB URI
 
-CONNECTION_STRING="mongodb+srv://ride-admin:YOUR_PASSWORD@rider.dvycreo.mongodb.net/ride-sharing?retryWrites=true&w=majority&appName=rider"
+CONNECTION_STRING="mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority&appName=YOUR_APP"
 
 echo "📝 Instructions:"
 echo "1. Replace YOUR_PASSWORD with your actual MongoDB password (URL-encoded)"

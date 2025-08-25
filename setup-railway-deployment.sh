@@ -72,7 +72,7 @@ NODE_ENV=production
 PORT=$PORT
 
 # MongoDB Atlas Connection
-MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE?retryWrites=true&w=majority&appName=YOUR_APP
+MONGODB_URI=<REFER CONNECTION STRING>
 USE_MOCK_DATABASE=false
 
 # Railway Redis (Automatically provided by Railway)
